@@ -8,7 +8,7 @@ class AdaptiveMetropolis(object):
     adapt_scale=False uses estimated covariance * "optimal scaling"
     adapt_scale=True adapts scaling to reach "optimal acceptance rate"
     '''
-    def __init__(self, target, mean_est=None, cov_est=None, tune_interval = None):
+    def __init__(self, target, mean_est=None, cov_est=None, tune_interval = 1):
 
         self.method ='AM'
         self._target = target
@@ -34,10 +34,6 @@ class AdaptiveMetropolis(object):
         self._tune_interval = tune_interval
         self._discard = 199
 
-        self.gamma = 0.05
-        self.t0 = 10
-        self.mu = 3*self.globalscale
-        self.Ht = 0.0
     def params_adapt(self, current, learning_rate):
 
         difference = current - self._mean_est

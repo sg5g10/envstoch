@@ -86,7 +86,7 @@ class MCMC(object):
                 self._sampler.adapt(i, current, accepted, log_ratio, chain[:i,:])
 
             # Report
-            if self._verbose and i % 100000 == 0:
+            if self._verbose and i % 1000 == 0:
                 print('Iteration ' + str(i) + ' of ' + str(self._iterations))
 
                 print('  Acceptance rate: ' + str(acceptance))
@@ -95,6 +95,6 @@ class MCMC(object):
                 
         # Return generated chain
         if self._target._transform:
-            return chain, tx_chain, X
+            return chain, X, tx_chain
         else:
             return chain

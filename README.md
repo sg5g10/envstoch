@@ -9,3 +9,7 @@ The particle filter is implemented using `Jax`, to benefit from JIT compilation 
 
 To install `NumPyro` read the following:
 http://num.pyro.ai/en/stable/getting_started.html#installation 
+
+## Running
+To run the fitting process, with `10` basis functions and `100` particles for the SMC:
+ `SIR_example.py --iterations 10000 --burnin 5000 --thin 5 --n_bases 10 --n_particles 100`

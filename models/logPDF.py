@@ -112,7 +112,7 @@ def SDElikelihood(key, y, param, dt, P, D, obs_interval):
             s.X = s.X.at[:,i,:,:].set(s.temp_state[s.ind,...])
             
         s.X =  s.X.reshape((P,num_steps*N,D),order='C')  
-    return s.mLik , s.X[0,...], jnp.exp(s.X[0,:,0])/param[3], s.t
+    return s.mLik , s.X[0,...]
 
 @partial(jit, static_argnums=(3,4,5,6))
 def SDEsimulate(key, y, param, dt, P, D, obs_interval):
@@ -262,7 +262,7 @@ class LogPosterior(object):
              logPrior_gamma + logPrior_x0 + logPrior_i0
         if self._fourier:
             log_prior += logPrior_z
-        return log_likelihood + log_prior, X, log_likelihood
+        return log_likelihood + log_prior, X
                    
     def n_parameters(self):
         return self.n_params
