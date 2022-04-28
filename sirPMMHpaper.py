@@ -6,8 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import time as timer
-import math
-import pandas as pd
 import seaborn as sns
 from jax import random
 from models.logPDF import LogPosterior
@@ -18,6 +16,7 @@ Transform = True
 iterations = 100000
 
 P = True
+# data of the 14 days long influenza epidemic
 Y= np.array([3,8,26,76,225,298,258,233,189,128,68,29,14,4])
 
 

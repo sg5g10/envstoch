@@ -154,13 +154,13 @@ def ODElikelihood(y, param, dt, D, obs_interval, e):
 
     z,t = EulerFourier(_param, init_val, 0.0, dt, 1, N*num_steps, D, e)
     lik = dist.Poisson(763*z.squeeze()[(ind),2]).log_prob(y).sum()      
-    return lik, z, jnp.exp(z[...,0])/param[3] #,t#, s.X, s.temp_state
+    return lik, z
 
 class LogPosterior(object):
     def __init__(self, data, num_particles=100, obs_interval=1, dt=0.1, \
         transform=False, fourier=False, e=None):
 
-        self._y = data
+        self._y = device_put(data)
         self._P = num_particles
         self._D = 4
         self._dt = dt
@@ -234,11 +234,11 @@ class LogPosterior(object):
         theta = device_put(theta_scaled)
 
         if self._fourier:
-            log_likelihood, X = ODElikelihood(self._y, theta, self._dt, self._D, \
-                self._obs_interval, self.e)
+            log_likelihood, X = device_get(ODElikelihood(self._y, theta, self._dt, self._D, \
+                self._obs_interval, self.e))
         else:
-            log_likelihood, X  = SDElikelihood(key, self._y, theta, self._dt, \
-            self._P, self._D, self._obs_interval)
+            log_likelihood, X  = device_get(SDElikelihood(key, self._y, theta, self._dt, \
+            self._P, self._D, self._obs_interval))
 
         if self._transform:
             logPrior_beta1 = stats.gamma.logpdf(beta1,a=2.,scale=1/2) + _Tx_beta1
