@@ -8,7 +8,7 @@ import argparse
 import time as timer
 import seaborn as sns
 from jax import random
-from models.logPDF import LogPosterior
+from models.logPDF_sir import LogPosterior
 from mcmc.adaptiveMetropolis import AdaptiveMetropolis
 from mcmc.block_mcmc import MCMC
 
@@ -170,15 +170,15 @@ if __name__ == '__main__':
           description='Fit the SDE and SA models to the Influenza epidemic')
   parser.add_argument('--transform', type=bool, default=True, metavar='N',
                       help='Transform to real line')
-  parser.add_argument('--iterations', type=int, default=10000, metavar='N',
+  parser.add_argument('--iterations', type=int, default=1000000, metavar='N',
                       help='Number of iterations of MCMC')
-  parser.add_argument('--burnin', type=int, default=5000, metavar='N',
+  parser.add_argument('--burnin', type=int, default=500000, metavar='N',
                       help='Number of burnin iterations of MCMC')
-  parser.add_argument('--thin', type=int, default=5, metavar='N',
+  parser.add_argument('--thin', type=int, default=500, metavar='N',
                       help='Thinning factor of MCMC')
   parser.add_argument('--n_bases', type=int, default=15, metavar='N',
                       help='Number of basis functions')
-  parser.add_argument('--n_particles', type=int, default=12, metavar='N',
+  parser.add_argument('--n_particles', type=int, default=1000, metavar='N',
                       help='Number of particles for PMMH') 
                     
   args = parser.parse_args()

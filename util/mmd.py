@@ -90,6 +90,5 @@ class GaussianKernel(Kernel):
         dists = squareform(pdist(Z[inds], 'sqeuclidean'))
         median_dist = np.median(dists[dists > 0])
         sigma = np.sqrt(0.5 * median_dist)
-        #gamma = 0.5 / (sigma ** 2)
         
         return sigma

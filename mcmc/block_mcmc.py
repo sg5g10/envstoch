@@ -3,9 +3,11 @@ from __future__ import print_function, unicode_literals
 import numpy as np
 from jax import random
 
-
 class MCMC(object):
-    
+    """
+    Implementation of the adaptive RWMH
+    algorithm.
+    """       
     _verbose=True
     def __init__(self, sampler, target, x0, iterations=150000):
 
@@ -86,7 +88,7 @@ class MCMC(object):
                 self._sampler.adapt(i, current, accepted, log_ratio, chain[:i,:])
 
             # Report
-            if self._verbose and i % 1000 == 0:
+            if self._verbose and i % 100000 == 0:
                 print('Iteration ' + str(i) + ' of ' + str(self._iterations))
 
                 print('  Acceptance rate: ' + str(acceptance))

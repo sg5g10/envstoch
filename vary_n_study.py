@@ -19,63 +19,51 @@ from jax import random
 import numpyro.distributions as dist
 import jax.ops as ops
 
-from models.logPDF import LogPosterior
+from models.logPDF_sir import LogPosterior
 from mcmc.adaptiveMetropolis import AdaptiveMetropolis
 from mcmc.block_mcmc import MCMC
 
 Transform = True
 iterations = 1000000
+Y= np.loadtxt('./data/flu_data.txt')
 
-P = True
-Y= np.array([3,8,26,76,225,298,258,233,189,128,68,29,14,4])
 burnin = 500000
 end = 1000000
 thin = 500
 
-sns.set_context("paper", font_scale=1)
-sns.set(rc={"figure.figsize":(11,7),"font.size":16,"axes.titlesize":16,"axes.labelsize":16,
-          "xtick.labelsize":15, "ytick.labelsize":15},style="white")
-param_names = [r"$\beta_1$",r"$\beta_2$",r"$\beta_3$",r"$\gamma$",\
-  r"$x_0$",r"$i_0$"]
- 
 
+### Run the SDE and save its output
+Fourier = False
+n_Bases = None
+logP = LogPosterior(Y, num_particles=1000, dt=0.1, transform=Transform, fourier=Fourier,e=n_Bases)
+start = [0.5,0.45,0.5, 0.5, 0.5, 0.9]
+X0 = np.hstack(start)
+X0 = logP._transform_from_constraint(X0)
+Init_scale = 1*np.abs(X0)
+cov = None
+sampler = AdaptiveMetropolis(logP, mean_est=X0, cov_est=cov, tune_interval = 1)
+MCMCsampler = MCMC(sampler, logP, X0, iterations)
+trace, _, _ = MCMCsampler.run(random.PRNGKey(1))
+trace_post_burn = trace[burnin:end,:]
+mcs_params = trace_post_burn[::thin,:]
+param_filename = './results/paper_n_vary/sde.p'
+pickle.dump(mcs_params, open(param_filename, 'wb'))
+
+### Run the SA for different values of n and save outputs
 bases = [3,5,10,15,20,25,30]
 timing =[]
 for k in range(len(bases)):
-  """
-  Fourier = False
-  n_Bases = bases
-
-  logP = LogPosterior(Y, num_particles=1000, dt=0.1, transform=Transform, fourier=Fourier,e=n_Bases)
-
-  start = [0.5,0.45,0.5, 0.5, 0.5, 0.9]
-  X0 = np.hstack(start)
-  X0 = logP._transform_from_constraint(X0)
-  Init_scale = 1*np.abs(X0)
-  cov = None
-  # Now run the AMGS sampler
-  sampler = AdaptiveMetropolis(logP, mean_est=X0, cov_est=cov, tune_interval = 1)
-
-  MCMCsampler = MCMC(sampler, logP, X0, iterations)
-  trace, _, _, _, _ = MCMCsampler.run(random.PRNGKey(1))
-  trace_post_burn = trace[burnin:end,:]
-  mcs_params = trace_post_burn[::thin,:]
-  """
-
-
   Fourier = True
   n_Bases = bases[k]
   logP = LogPosterior(Y, num_particles=1, dt=0.1, transform=True, fourier=Fourier,e=n_Bases)
-  start = [0.5,0.45,0.5, 0.5, 0.5, 0.9,*np.random.randn(n_Bases)]#[.3,.6,.2,0.15,1,.9,*np.random.randn(n_Bases)]
+  start = [0.5,0.45,0.5, 0.5, 0.5, 0.9,*np.random.randn(n_Bases)]
   X0 = np.hstack(start)
   X0 = logP._transform_from_constraint(X0)
   Init_scale = 1*np.abs(X0)
   cov = None
-  # Now run the AMGS sampler
   sampler = AdaptiveMetropolis(logP, mean_est=X0, cov_est=cov, tune_interval = 1)
 
   MCMCsampler = MCMC(sampler, logP, X0, iterations)
-  #MCMCsampler = SubBlockRegionalAMGS(logP, X0, X0, iterations)
   t0 = timer.time()
   trace, _, X, Rt, lfx = MCMCsampler.run(random.PRNGKey(1))
   t1 = timer.time()
@@ -87,9 +75,9 @@ for k in range(len(bases)):
   param_filename = './results/paper_n_vary/ode'+str(n_Bases)+'.p'
   pickle.dump(mco_params, open(param_filename, 'wb'))
 
+### Record the runtimes of SA with different n
 runtimes = np.array(timing)
 np.savetxt('./results/paper_n_vary/odetimes.txt',runtimes)
- 
 
 
 

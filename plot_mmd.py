@@ -1,63 +1,38 @@
 #!/usr/bin/env python3
 from __future__ import division
 from __future__ import print_function
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import time as timer
-import math
-import pandas as pd
 import seaborn as sns
 import scipy.stats as stats
 from util.mmd import GaussianKernel
 
-burnin = 250000
-end = 500000
-thin = 250
-param_filename = './chains_sir_sde.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:]
-pm_params =  trace_post_burn[::thin,:]
 
-burnin = 500000
-end = 1000000
-thin = 500
-param_filename = './results/chains_sir_ode3.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_3bs =  trace_post_burn[::thin,:]
+param_filename = './results/paper_n_vary/sde.p'
+pm_params = pickle.load( open( param_filename , "rb" ) )
+print(pm_params.shape)
 
+param_filename = './results/paper_n_vary/ode3.p'
+mc_params_3bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
+print(mc_params_3bs.shape)
+param_filename = './results/paper_n_vary/ode5.p'
+mc_params_5bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
 
-param_filename = './results/chains_sir_ode5.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_5bs =  trace_post_burn[::thin,:] 
+param_filename = './results/paper_n_vary/ode10.p'
+mc_params_10bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
 
-param_filename = './results/chains_sir_ode10.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_10bs =  trace_post_burn[::thin,:]
+param_filename = './results/paper_n_vary/ode15.p'
+mc_params_15bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
 
-param_filename = './results/chains_sir_ode15.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_15bs =  trace_post_burn[::thin,:] 
+param_filename = './results/paper_n_vary/ode20.p'
+mc_params_20bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
 
-param_filename = './results/chains_sir_ode20.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_20bs =  trace_post_burn[::thin,:]
+param_filename = './results/paper_n_vary/ode25.p'
+mc_params_25bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
 
-param_filename = './results/chains_sir_ode25.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_25bs =  trace_post_burn[::thin,:]
-
-param_filename = './results/chains_sir_ode30.p'
-trace = pickle.load( open( param_filename , "rb" ) )
-trace_post_burn = trace[burnin:end,:6]
-mc_params_30bs =  trace_post_burn[::thin,:]
+param_filename = './results/paper_n_vary/ode30.p'
+mc_params_30bs = pickle.load( open( param_filename , "rb" ) )[:,:6]
 
 kern=GaussianKernel(1.5)
 sig=kern.get_sigma_median_heuristic(pm_params,500)
