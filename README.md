@@ -21,6 +21,7 @@ To reproduce the MMD study, first run:
 ### Compile the c++ code
 Go to `./models/COVID_CPP` directory and then compile by using `python setup.py build_ext -i`. Then rename the generated *.so file to `death_lik.so` and `seeiir_ode`.
 
+### Do inference
 Once you have access to the data, move these to the data directory. Then to run the model with random-walk stochasticity:
 `COVID_rw_example.py` and with the Brownian motion approximation `COVID_bma_example.py`
 
