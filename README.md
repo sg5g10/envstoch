@@ -10,6 +10,9 @@ The particle filter is implemented using `Jax`, to benefit from JIT compilation 
 To install `NumPyro` read the following:
 http://num.pyro.ai/en/stable/getting_started.html#installation 
 
+
+To wrapp the c++ code (needed to run the covid models) in python, the `pybind11` package must be installed: https://pybind11.readthedocs.io/en/latest/installing.html#include-with-pypi 
+
 ## Influenza model
 To run the fitting process, SA with `10` basis functions and SDE `100` particles for the SMC:
  `SIR_example.py --iterations 100000 --burnin 50000 --thin 50 --n_bases 10 --n_particles 100`
