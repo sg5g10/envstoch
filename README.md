@@ -18,7 +18,7 @@ To reproduce the MMD study, first run:
 `vary_n_study.py` then run `plot_mmd.py`
 
 ## COVID19 model
-# Compile the c++ code
+### Compile the c++ code
 Go to `./models/COVID_CPP` directory and then compile by using `python setup.py build_ext -i`. Then rename the generated *.so file to `death_lik.so` and `seeiir_ode`.
 
 Once you have access to the data, move these to the data directory. Then to run the model with random-walk stochasticity:
