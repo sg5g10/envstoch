@@ -11,6 +11,7 @@ from jax import random
 from models.logPDF_sir import LogPosterior
 from mcmc.adaptiveMetropolis import AdaptiveMetropolis
 from mcmc.block_mcmc import MCMC
+from models.logPDF_sir import SDEsimulate
 
 
 def mcmc_runner(init, logprob, iters):
@@ -160,7 +161,10 @@ def main(args):
   print('\n SA time: \n', total)
   trace_post_burn = trace_sa[burnin:end,:]
   sa_params = trace_post_burn[::thin,:]
-
+  param_filename = './results/sa_params_ps.p'
+  pickle.dump(sa_params, open(param_filename, 'wb'))
+  param_filename = './results/sde_params_ps.p'
+  pickle.dump(sde_params, open(param_filename, 'wb'))
   plot_marginals(sde_params, sa_params)
 
   plot_gof([X_sde,X_sa], Y, burnin)

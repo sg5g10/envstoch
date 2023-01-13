@@ -255,7 +255,7 @@ plt.plot(x_axis, bma_rt_uq, '--', color='orange', lw=1)
 plt.plot(x_axis, rw_rt_lq, '--', color='magenta', lw=1)
 plt.plot(x_axis, rw_rt_uq, '--', color='magenta', lw=1)
 plt.plot(x_axis, rw_rt_mean, color='magenta', lw=3, label='Random-Walk')
-plt.plot(x_axis, bma_rt_mean, color='orange', lw=3, label='BMA')
+plt.plot(x_axis, bma_rt_mean, color='orange', lw=3, label='SA (n=10)')
 
 plt.ylabel('All England ' + r"$R_{t,E}$", fontsize=12)
 plt.xlabel('Days', fontsize=12)
