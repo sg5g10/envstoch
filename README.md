@@ -29,7 +29,7 @@ then run
 ## Nonstationary signal (with SIRS model)
 To run the fitting process, SA with `20` basis functions:
 
- `SIRS_example.py --iterations 500000 --burnin 250000 --thin 250 --n_bases 2`
+ `SIRS_example.py --iterations 500000 --burnin 250000 --thin 250 --n_bases 20`
 
 ## COVID19 model
 ### Compile the c++ code
