@@ -15,22 +15,39 @@ To wrapp the c++ code (needed to run the covid models) in python, the `pybind11`
 
 ## Influenza model
 To run the fitting process, SA with `15` basis functions and SDE `100` particles for the SMC:
+
  `SIR_example.py --iterations 100000 --burnin 50000 --thin 50 --n_bases 15 --n_particles 100`
 
 To reproduce the MMD study, first run:
-`vary_n_study.py` then run `plot_mmd.py`
+
+`vary_n_study.py` 
+
+then run 
+
+`plot_mmd.py`
 
 ## Nonstationary signal (with SIRS model)
 To run the fitting process, SA with `20` basis functions:
+
  `SIRS_example.py --iterations 500000 --burnin 250000 --thin 250 --n_bases 2`
 
 ## COVID19 model
 ### Compile the c++ code
-Go to `./models/COVID_CPP` directory and then compile by using `python setup.py build_ext -i`. Then rename the generated *.so files to `death_lik.so` and `seeiir_ode.so`.
+Go to `./models/COVID_CPP` directory and then compile by using 
+
+`python setup.py build_ext -i`. 
+
+Then rename the generated *.so files to `death_lik.so` and `seeiir_ode.so`.
 
 ### Do inference
 Once you have access to the data, move these to the data directory. Then to run the model with random-walk stochasticity:
-`COVID_rw_example.py` and with the Brownian motion approximation `COVID_bma_example.py`
+
+`COVID_rw_example.py` 
+
+and with the Brownian motion approximation 
+
+`COVID_bma_example.py`
 
 Once MCMC is finished for both these, then run:
+
 `plot_covid.py` to visualise the posterior predicitves.
