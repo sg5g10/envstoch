@@ -11,7 +11,7 @@ from jax import random
 from models.logPDF_sirs import LogPosterior
 from mcmc.adaptiveMetropolis import AdaptiveMetropolis
 from mcmc.block_mcmc_sirs import MCMC
-from models.logPDF_sirs import SDEsimulate, SDElikelihood
+from models.logPDF_sirs import SDEsimulate
 import jax.numpy as jnp
 
 
@@ -27,14 +27,14 @@ def plot_marginals(sa_params):
   sns.set_context("paper", font_scale=1)
   sns.set(rc={"figure.figsize":(11,10),"font.size":16,"axes.titlesize":16,"axes.labelsize":16,
             "xtick.labelsize":15, "ytick.labelsize":15},style="white")
-  param_names = [r"$x_0$",r"$\sigma$",r"$1/\alpha$",r"$1/\gamma$", r"$S_0$",\
+  param_names = [r"$\beta_0$",r"$\sigma$",r"$1/\alpha$",r"$1/\gamma$", r"$S_0$",\
     r"$I_0$"]
   for i, p in enumerate(param_names):
           
           # Add histogram subplot
           plt.subplot(3, 3, i+1)
           if i==0:
-              sns.kdeplot(sa_params[:, i], color='orange', linewidth = 2.5, label='SA (n=15)')
+              sns.kdeplot(sa_params[:, i], color='orange', linewidth = 2.5, label='SA (n=20)')
           elif i==1:
             sns.kdeplot(sa_params[:, i], color='orange', linewidth = 2.5)
           else:
@@ -52,8 +52,6 @@ def plot_marginals(sa_params):
 
 def plot_gof(states, inc, y, sine, burnin):
   N=burnin
-
-  #X_sde_traj = np.random.poisson(X_sde[-N:,:,2]*763)
   
   inc_traj = np.random.poisson(inc[-N:,:])
   mean_sa_traj = np.percentile(inc_traj,q=50,axis=0)
@@ -74,7 +72,7 @@ def plot_gof(states, inc, y, sine, burnin):
   plt.subplot(2,1,1)
   
   
-  plt.plot(times,mean_sa_traj, color='orange', lw=4, label='SA (n=15)')
+  plt.plot(times,mean_sa_traj, color='orange', lw=4, label='SA (n=20)')
   plt.plot(times,CriL_sa_traj, '--', color='orange', lw=2)
   plt.plot(times,CriU_sa_traj, '--',  color='orange', lw=2)
   plt.plot(times, y, 'o', color='k', lw=4, ms=5.5, label='Observations')
@@ -104,7 +102,8 @@ def main(args):
   burnin = args.burnin
   end = args.iterations
   thin = args.thin
-  # data of the 14 days long influenza epidemic 1/(7*365)
+  # Generate simulated data
+  """
   Y= np.zeros(156)
   sim_y, sim_x, t = SDEsimulate(random.PRNGKey(10),Y, np.array([0.65,0.4, 1/(50*365),1/(7*365),1/14,600,30]), 1, 7, 5, 7)
   np.savetxt('./data/sim_y.txt',sim_y)
@@ -117,11 +116,15 @@ def main(args):
   plt.plot(sim_y)
   plt.savefig('./figures/sis_sim_i.png')
   plt.close()
+  """
   
   
     # Fit the SA model
   Fourier = True
   n_Bases = 20
+
+  sim_y = np.loadtxt('./data/sim_y_sirs.txt')
+  sim_x = np.loadtxt('./data/sim_x_sirs.txt')
   logP = LogPosterior(sim_y, num_particles=1, \
     transform=transform_pars_to_real, fourier=Fourier,e=n_Bases,dt=1,obs_interval=7)
   pars_init = [0.39,.01,2500,12, 610, 28, *np.random.randn(n_Bases)]
@@ -134,12 +137,11 @@ def main(args):
   trace_post_burn = trace_sa[burnin:end,:]
   sa_params = trace_post_burn[::thin,:]
   plot_marginals(sa_params)
-  sim_y = np.loadtxt('./data/sim_y.txt')
-  sim_x = np.loadtxt('./data/sim_x.txt')
+  
   x_sa = np.array(X_sa)
   sa_inc = np.array(incidence)
   plot_gof(x_sa, sa_inc, sim_y, sim_x[:,0], 5000)
-  
+  """
   param_filename = './results/sa_params_sirs.p'
   pickle.dump(sa_params, open(param_filename, 'wb'))
 
@@ -148,11 +150,12 @@ def main(args):
 
   param_filename = './results/sa_inc_sirs.p'
   pickle.dump(incidence, open(param_filename, 'wb'))  
+  """
  
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-          description='Fit the SDE and SA models to the Influenza epidemic')
+          description='Fit the SA version of the SIRS model')
   parser.add_argument('--transform', type=bool, default=False, metavar='N',
                       help='Transform to real line')
   parser.add_argument('--iterations', type=int, default=500000, metavar='N',
@@ -168,14 +171,4 @@ if __name__ == '__main__':
                     
   args = parser.parse_args()
   main(args)
-
-
-  
-
-
-
-
-
-
-
 

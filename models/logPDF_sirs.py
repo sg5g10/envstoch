@@ -14,6 +14,7 @@ from jax.experimental import loops
 import jax.ops as ops
 from jax.config import config
 from jax import lax
+from models.euler_sir import EulerFourierSirs, EulerSineSirs
 config.update("jax_enable_x64", True)
 
 class NegativeBinomialProbs(dist.GammaPoisson):
@@ -28,117 +29,6 @@ class NegativeBinomialProbs(dist.GammaPoisson):
         concentration = total_count
         rate = 1.0 / probs - 1.0
         super().__init__(concentration, rate, validate_args=validate_args)
-
-from models.euler_sir import EulerFourierSirs, EulerMaruyamaSirs, EulerSineSirs
-#@partial(jit)
-def create_indices(positions, weights):
-    n = 1000#len(weights)
-    indices = jnp.zeros(n, jnp.uint32)
-    cumsum = jnp.cumsum(weights)
-    def true_fun(args):
-        a, b, c = args
-        a= a.at[b].set(c)
-        b += 1
-        return (a,b,c)
-    def false_fun(args):
-        a, b, c = args
-        c += 1
-        return (a,b,c)
-
-    with loops.Scope() as s:
-
-        s.i, s.j = 0, 0
-        s.operands = ()
-        s.flag = True
-        while s.i < 1000:
-            s.operands = (indices,s.i,s.j)
-            s.flag = positions[s.i] < cumsum[s.j]
-            indices,s.i,s.j = lax.cond(s.flag, true_fun, false_fun, s.operands)
-
-    return indices
-
-#@partial(jit)
-def systematic_resample(key, weights):
-    n = len(weights)
-    positions = (jnp.arange(n) + random.uniform(key)) / n
-    return create_indices(positions, weights)
-
-#@partial(jit)
-def residual_resample(key, weights):
-    n = len(weights)
-    
-    # take int(N*w) copies of each weight
-    num_copies = (n * weights)
-    num_copies = jnp.array(num_copies, jnp.int32)
-    with loops.Scope() as s:
-
-        s.indices = jnp.zeros(n)
-        s.k = 0
-        for i in s.range(n):
-            for _ in s.range(n):  # make n copies
-                s.indices = s.indices.at[s.k].set(i)  
-              
-                s.k += 1
-    # use multinormial resample on the residual to fill up the rest.
-        s.residual = weights - num_copies  # get fractional part
-        s.residual /= jnp.sum(s.residual)
-        s.cumsum = jnp.cumsum(s.residual)
-        s.cumsum = s.cumsum.at[-1].set(1)  
-        s.P = n - s.k
-        s.indices = s.indices.at[s.k:n].set(jnp.searchsorted(s.cumsum, random.uniform(key, shape= (s.P,))))  
-        
-    return s.indices
-
-@partial(jit, static_argnums=(3,4,5,6))
-def SDElikelihood(key, y, param, dt, P, D, obs_interval):
-    """
-    Implements a vectorised Bootstrap SMC to
-    extract a smaple path and 
-    unbiased likelihood estimate
-    """
-    N = int(((obs_interval + dt) /dt)) - 1
-    
-    num_steps = y.shape[0]
-    with loops.Scope() as s:
-
-        s.zz = jnp.ones((P,D))*jnp.array([param[0],param[4],param[5],0.,10000-(param[4] + param[5])])
-        s.X = jnp.zeros((P,1,D))
-        s.X = jnp.zeros((P,num_steps,N,D))
-        s.temp_state = jnp.zeros((P,N,D))
-        s.s = 0.
-        s.m = 0.
-        s.w = jnp.ones(P)
-        s.lw = jnp.ones(P)
-        s.wt = s.w/P
-        s.mLik = 0.
-        s.ind = random.choice(key, a=P, shape=(P,), p=s.wt)
-        #s.zz = s.zz[s.ind,:]
-        s.t = jnp.zeros(num_steps)
-        s.key2 = key
-
-        s.temp_time = 0.
-        for i in s.range(num_steps):      
-
-            s.key2, euler_subkey, resample_subkey = random.split(s.key2,3)
-            s.temp_state, s.temp_time = EulerMaruyamaSirs(euler_subkey, param[1:4], s.zz, s.temp_time, dt, P, N, D)   
-            s.zz = s.temp_state[:,-1,:]
-            s.t = s.t.at[i].set(s.temp_time)
-            #s.w = jnp.exp(dist.Poisson(s.zz[...,2]*763).log_prob(y[i]))
-            #s.lw = poisson.logpmf(y[i],s.zz[:,3]-s.temp_state[:,0,3])
-            s.lw = NegativeBinomial2(s.zz[:,3]-s.temp_state[:,0,3],50).log_prob(y[i])
-            s.m = s.lw.max()
-            
-            s.w = jnp.exp(s.lw - s.m)
-            s.s = s.w.sum()
-            s.wt = s.w/s.s
-            s.mLik += s.m + jnp.log(s.s / P)
-            #s.ind = random.categorical(resample_subkey, s.lw, shape=(P,))
-            s.ind = random.choice(resample_subkey, a=P, shape=(P,), p=s.wt)
-            s.zz = s.zz[s.ind,:]
-            s.X = s.X.at[:,i,:,:].set(s.temp_state[s.ind,...])
-            
-        s.X =  s.X.reshape((P,num_steps*N,D),order='C')  
-    return s.mLik , s.X[0,...]
 
 
 @partial(jit, static_argnums=(3,4,5,6))
